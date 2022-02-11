@@ -75,6 +75,8 @@ func (r *ErrPreservingReader) ReadUint32(order binary.ByteOrder) (uint32, error)
 func ReadNBytes(r io.Reader, n int) ([]byte, error) {
 	bytes := make([]byte, n)
 
+	r = io.LimitReader(r, n)
+
 	var err error
 	for totalRead := 0; totalRead < n; {
 		if err != nil {
