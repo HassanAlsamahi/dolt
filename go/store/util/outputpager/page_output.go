@@ -79,17 +79,18 @@ func Start() *Pager {
 
 	p := &Pager{stdout, stdin, stdout, &sync.Mutex{}, make(chan struct{})}
 
-	sigtermChannel := make(chan os.Signal, 1)
-	defer close(sigtermChannel)
+	interruptChannel := make(chan os.Signal, 1)
+	signal.Notify(interruptChannel, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	defer close(interruptChannel)
 
-	signal.Notify(sigtermChannel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		for {
 			select {
-			case <-sigtermChannel:
-				p.closePipe()
-				p.doneCh <- struct{}{}
-				return
+			case _, ok := <-interruptChannel:
+				if ok {
+					p.closePipe()
+					p.doneCh <- struct{}{}
+				}
 			default:
 			}
 		}
