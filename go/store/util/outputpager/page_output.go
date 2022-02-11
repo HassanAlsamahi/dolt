@@ -84,12 +84,14 @@ func Start() *Pager {
 
 	signal.Notify(sigtermChannel, os.Interrupt, syscall.SIGTERM)
 	go func() {
-		select {
-		case <-sigtermChannel:
-			p.closePipe()
-			p.doneCh <- struct{}{}
-		case <-p.doneCh:
-			return
+		for {
+			select {
+			case <-sigtermChannel:
+				p.closePipe()
+				p.doneCh <- struct{}{}
+				return
+			default:
+			}
 		}
 	}()
 
